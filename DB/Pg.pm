@@ -686,8 +686,32 @@ sub getComponentList {
         my $sorted_list = [ sort { $a->[1] cmp $b->[1] } @$list ];
         push @cl, [ $_, $sorted_list ];
     }
-
     return \@cl;
+}
+
+#
+#_______________________________________
+sub getDistroList {
+    my $self = shift;
+    my $dbh  = $self->{dbh};
+    my $q    = qq/select distro_name, board, description from distro/;
+    my $list = $dbh->selectall_arrayref($q);
+
+    # get them grouped by distribution
+    my (%board_list, $distro, $cat);
+    foreach $distro (@$list) {
+        $cat = $board_list{$distro->{distro_name}} ||= [ ];
+        push @$cat, $distro;
+    }
+
+    # sort
+    my @dl;
+    foreach (sort keys %board_list) {
+        $list = $board_list{$_};
+        my $sorted_list = [ sort { $a->[0] cmp $b->[0] } @$list ];
+        push @dl, [ $_, $sorted_list ];
+    }
+    return \@dl;
 }
 
 # need to do something clever here
@@ -801,6 +825,10 @@ a brief summary of the module written with users in mind.
 =item getComponentList
 
     my $cl = $edb->getComponentList;
+
+=item getDistroList
+
+    my $dl = $edb->getDistroList;
 
 =back
 

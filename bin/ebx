@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
 
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
 use strict;
 use Getopt::Long;
 use Data::Dumper;
@@ -48,6 +51,28 @@ sub ls {
     }
 }
 
+# this is a wrapper for distro manipulation methods
+#_______________________________________
+sub admin {
+    my $edb     = shift;
+    local @ARGV = @_;
+
+    my %sub_for_admin_command = (
+        addDistro    => undef,
+        cloneDistro  => undef,
+        updateDistro => undef,
+    );
+
+    my $c = shift(@ARGV) || pod2usage(-verbose => 0);
+    my $sub;
+
+    if (defined($sub = $sub_for_admin_command{$c})) {
+        $sub->($edb, @ARGV);
+    } else {
+        warn("'$c' is not a valid command.\n");
+    }
+}
+
 #_________________________________________________________________________main
 
 # read config
@@ -71,6 +96,7 @@ my %sub_for_command = (
     '--help'        => \&help,
     '-h'            => \&help,
     add             => \&add,
+    admin           => \&admin,
     build           => undef,
     dep             => undef,
     enable          => undef,
@@ -88,14 +114,14 @@ my $edb = Embedix::DB->new(
 );
 
 # cheat
-$edb->workOnDistro(name => 'Embedix 1.2', board => 'i386');
+$edb->workOnDistro(name => 'Embedix 2.0', board => 'i386');
 
 # werk
 my $c = shift(@ARGV) || pod2usage(-verbose => 0);
 my $sub;
 
 if (defined($sub = $sub_for_command{$c})) {
-    $sub->($edb);
+    $sub->($edb, @ARGV);
 } else {
     warn("'$c' is not a valid command.\n");
 }
@@ -132,25 +158,25 @@ Remember:  EBX rhymes with CVS.
 
 =over 8
 
-=item I<new>
+=item new
 
 initialize a new instance of a distro
 
 It goes like this...
 
-=item I<build>
+=item build
 
 build the current instance of the distro.
 
-=item I<dep>
+=item dep
 
 check the dependencies of a node
 
-=item I<enable>
+=item enable
 
 enable a node
 
-=item I<ls>
+=item ls
 
 list packages
 
@@ -160,13 +186,17 @@ list packages
 
 =over 8
 
-=item I<add>
+=item addDistro
 
-add information from an ECD to a distro.
+add a distribution to the database
 
-=item I<disable>
+=item cloneDistro
 
-disable a node from the current distro
+clone an existing distro
+
+=item updateDistro
+
+add information from an ECD to a distro
 
 =back
 
@@ -216,4 +246,4 @@ John BEPPU <beppu@lineo.com>
 
 =cut
 
-# $Id: ebx,v 1.6 2001/02/21 20:56:00 beppu Exp $
+# $Id: ebx,v 1.8 2001/03/09 13:53:51 beppu Exp $

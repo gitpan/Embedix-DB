@@ -7,11 +7,10 @@ use vars qw($VERSION $AUTOLOAD);
 use Embedix::ECD;
 
 # database back ends
-use Embedix::DB::ECD;
 use Embedix::DB::Pg;
-#use Embedix::DB::mysql;
+#se Embedix::DB::mysql;
 
-$VERSION = 0.04;
+$VERSION = 0.05;
 
 # Embedix::DB->new (
 #   backend => 'Pg' # only one implemented so far
@@ -312,6 +311,19 @@ This returns an arrayref of the form:
 The list of categories as well as the list of nodes within each category
 come sorted in ASCII order.
 
+=item getDistroList
+
+This returns an arrayref of the form:
+
+    [
+        [ 'distro0' [ $board0, $board1, ... ] ],
+        [ 'distro1' [ $board0, $board1, ... ] ],
+        ...
+    ];
+
+This is a list of distributions where each distribution has a list of
+which boards it supports.  The board lists are sorted in ASCII order.
+
 =back
 
 =head1 DIAGNOSTICS
@@ -341,4 +353,4 @@ Embedix::ECD(3pm), Embedix::Config(3pm)
 =cut
 
 # vim:ts=8 tw=72
-# $Id: DB.pm,v 1.4 2001/02/21 20:56:00 beppu Exp $
+# $Id: DB.pm,v 1.5 2001/03/09 13:53:51 beppu Exp $

@@ -35,6 +35,16 @@ beyond 1.00
     + implement deleteNodeDependencies() and a test for it.
       This will just be a front-end to the 
       plpgsql function node_dependencies_delete();
+    + using advanced perl OO-magick, make a subclass of Embedix::ECD
+      that has delayed node retrieval...  or maybe I should add hooks
+      to Embedix::ECD that makes it friendly towards delayed loaders.
+      That would be PIMP!
+
+0.05
+    - implemented getDistroList() which has similar behaviour to
+      getComponentList();
+    - document getDistroList
+    - added stub for admin functionality to bin/ebx
 
 0.04  Sun Feb 25 09:51:04 MST 2001
     - [Pg] factor a function out of node_dependencies_delete() such that

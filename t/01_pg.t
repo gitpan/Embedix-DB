@@ -91,6 +91,10 @@ ok($path, "/System/Utilities/tinylogin");
 my $clone = $edb->cloneDistro(board => 'ppc');
 ok($clone);
 
+# TODO:getComponentList
+
+# TODO:getDistroList
+
 # cleanup
 if (1) {
     $dbh->do(qq|
