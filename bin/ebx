@@ -1,0 +1,219 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Getopt::Long;
+use Data::Dumper;
+use Pod::Usage;
+use Safe;
+
+use Embedix::DB;
+use Embedix::ECD;
+
+#_______________________________________
+sub help {
+    pod2usage(-verbose => 1);
+}
+
+#_______________________________________
+sub new {
+    my $edb = shift;
+    if (-d "./EBX") {
+        print STDERR "a project already exists here\n";
+    } else {
+        mkdir("EBX", 0775) or die($!);
+    }
+    die("not done yet");
+}
+
+#_______________________________________
+sub add {
+    my $edb = shift;
+    foreach (@ARGV) {
+        my $ecd = Embedix::ECD->newFromFile($_);
+        $edb->updateDistro(ecd => $ecd);
+    }
+}
+
+#_______________________________________
+sub ls {
+    my $edb = shift;
+    my $cl  = $edb->getComponentList;
+    my $cat;
+
+    foreach $cat (@$cl) {
+        print $cat->[0], "\n";
+        foreach my $item (@{$cat->[1]}) {
+            print "  $item->[1]\n";
+        }
+    }
+}
+
+#_________________________________________________________________________main
+
+# read config
+my $config_file = "$ENV{HOME}/.embedix/embedixrc";
+if (-e $config_file) {
+    # eval ebxrc
+    open(EBXRC, $config_file) || die($!);
+    my $ebxrc = join('', <EBXRC>);
+    close(EBXRC);
+    eval($ebxrc);
+} else {
+    # create ebxrc if it doesn't already exist;
+    mkdir("$ENV{HOME}/.embedix", 0777)  || die($!);
+    open(EBXRC, "> $config_file")       || die($!);
+    close(EBXRC);
+    chmod(0600, $config_file)
+}
+
+# setup function table
+my %sub_for_command = (
+    '--help'        => \&help,
+    '-h'            => \&help,
+    add             => \&add,
+    build           => undef,
+    dep             => undef,
+    enable          => undef,
+    ls              => \&ls,
+    new             => \&new,
+);
+
+# connect to edb
+my $edb = Embedix::DB->new(
+    backend => 'Pg',
+    source  => [
+        'dbi:Pg:dbname=embedix', undef, undef,
+        { AutoCommit => 0 }
+    ],
+);
+
+# cheat
+$edb->workOnDistro(name => 'Embedix 1.2', board => 'i386');
+
+# werk
+my $c = shift(@ARGV) || pod2usage(-verbose => 0);
+my $sub;
+
+if (defined($sub = $sub_for_command{$c})) {
+    $sub->($edb);
+} else {
+    warn("'$c' is not a valid command.\n");
+}
+
+exit;
+
+__END__
+
+=head1 NAME
+
+ebx - manage Embedix distributions
+
+=head1 SYNOPSIS
+
+=over 4
+
+=item B<ebx>
+
+[ARGUMENT] [OPTION]...
+
+=back
+
+=head1 DESCRIPTION
+
+This is a command-line tool for managing and configuring Embedix distributions.
+The command is invoked similar to the way cvs(1) is invoked in that one has a
+choice of many subcommands to invoke.
+
+Remember:  EBX rhymes with CVS.
+
+=head1 ARGUMENTS
+
+=head2 Project-related Commands
+
+=over 8
+
+=item I<new>
+
+initialize a new instance of a distro
+
+It goes like this...
+
+=item I<build>
+
+build the current instance of the distro.
+
+=item I<dep>
+
+check the dependencies of a node
+
+=item I<enable>
+
+enable a node
+
+=item I<ls>
+
+list packages
+
+=back
+
+=head2 Distribution-related Commands
+
+=over 8
+
+=item I<add>
+
+add information from an ECD to a distro.
+
+=item I<disable>
+
+disable a node from the current distro
+
+=back
+
+=head1 FILES
+
+=over 4
+
+=item $ENV{HOME}/.embedix/ebxrc
+
+=back
+
+=head1 DIAGNOSTICS
+
+error messages
+
+=head1 REQUIRES
+
+=over 4
+
+=item Embedix::ECD
+
+=item Embedix::DB
+
+=item Embedix::Config
+
+=item Embedix::ConfigServer
+
+=item Getopt::Long
+
+for command-line options
+
+=back
+
+=head1 SEE ALSO
+
+stuff that relates to me
+
+=head1 COPYRIGHT
+
+Copyright (c) 2000,2001 John BEPPU.  All rights reserved.  This program is
+free software; you can redistribute it and/or modify it under the same
+terms as Perl itself.
+
+=head1 AUTHOR
+
+John BEPPU <beppu@lineo.com>
+
+=cut
+
+# $Id: ebx,v 1.6 2001/02/21 20:56:00 beppu Exp $
